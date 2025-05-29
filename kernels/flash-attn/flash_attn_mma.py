@@ -125,6 +125,7 @@ def get_build_sources():
     )
     # CuTe
     build_sources.append("./cutlass/flash_attn_cute.cu")
+    build_sources.append("./cutlass/flash_attn_cute_pipelined.cu")
     # Others
     if args.build_others:
         build_sources.append("./mma/others/flash_attn_mma_share_qkv_Os2g.cu")
@@ -564,6 +565,7 @@ MAX_HEADDIM_CFG: dict[str, int] = {
     "mma(split-q+tiling-qkv+acc-f32+swizzle-qkv+stage2)": 1024,
     # CuTe
     "(cute)": 256,
+    "(cute_pipelined)": 256,
     # Others, O s2g, etc.
     "mma(split-q+share-qkv+o-s2g+stage1)": 256,
     "mma(split-q+share-qkv+o-s2g+stage2)": 128,
@@ -1111,6 +1113,9 @@ for B, H, N, D in BHNDs:
     )
     # CuTe
     out_cute, _ = run_benchmark(lib.flash_attn_cute, q, k, v, "(cute)", o)
+    out_cute_pipelined, _ = run_benchmark(
+        lib.flash_attn_cute, q, k, v, "(cute_pipelined)", o
+    )
     # FA2, SDPA official
     out_flash, _ = run_benchmark(flash_attn_func, fq, fk, fv, "(flash)")
     out_sdpa, _ = run_benchmark(
@@ -1424,6 +1429,12 @@ for B, H, N, D in BHNDs:
             )
             # CuTe
             check_all_close(out_flash, out_cute, "out_cute", args.check_all)
+            check_all_close(
+                out_flash,
+                out_cute_pipelined,
+                "out_cute_pipelined",
+                args.check_all,
+            )
             # Others, O s2g, etc.
             check_all_close(
                 out_flash,
@@ -1680,6 +1691,13 @@ for B, H, N, D in BHNDs:
             # CuTe
             check_all_close(
                 out_sdpa, out_cute, "out_cute", args.check_all, False
+            )
+            check_all_close(
+                out_sdpa,
+                out_cute_pipelined,
+                "out_cute_pipelined",
+                args.check_all,
+                False,
             )
             # Others, O s2g, etc.
             check_all_close(

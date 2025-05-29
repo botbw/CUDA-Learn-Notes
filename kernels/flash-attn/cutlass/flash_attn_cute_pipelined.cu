@@ -493,8 +493,8 @@ static void launch_kernel(torch::Tensor Q, torch::Tensor K, torch::Tensor V,
   CUDA_CHECK(cudaGetLastError());
 }
 
-void flash_attn_cute(torch::Tensor Q, torch::Tensor K, torch::Tensor V,
-                     torch::Tensor O) {
+void flash_attn_cute_pipelined(torch::Tensor Q, torch::Tensor K,
+                               torch::Tensor V, torch::Tensor O) {
   CHECK_TORCH_TENSOR_DTYPE(Q, torch::kHalf) // Q [B,H,N,D]
   CHECK_TORCH_TENSOR_DTYPE(K, torch::kHalf) // K [B,H,N,D]
   CHECK_TORCH_TENSOR_DTYPE(V, torch::kHalf) // V [B,H,N,D]
